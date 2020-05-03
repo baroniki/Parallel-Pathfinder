@@ -145,7 +145,7 @@ void addLevels(vector<Node*> nodes, vector< vector<char> > &maze, int r, int c){
 }
 
 
-//Running BFS using Lab2b.cpp source
+//Running BFS
 void bfs(vector<Node*> &nodes, int start_r, int start_c, int c){
 	queue<int> q;
 	//setting starting node to the [r c] input
@@ -199,7 +199,7 @@ void bfs(vector<Node*> &nodes, int start_r, int start_c, int c){
 //Main function
 //./bfs_parallel maze
 int main (int argc, char *argv[]){
-	
+
 	//having them automatically default in this situation
 	int start_r=0, start_c=0;
 	string filename = "";
