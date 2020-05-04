@@ -1,55 +1,56 @@
-#include "../include/bfs_solver.h"
+#include "../include/dfs_solver.h"
 
-BFSSolver::BFSSolver() {
+DFSSolver::DFSSolver() {
 	// Do nothing
 }
 
-BFSSolver::BFSSolver(const std::string maze_file) {
-	maze = new BFSMaze(maze_file);
+DFSSolver::DFSSolver(const std::string maze_file) {
+	maze = new DFSMaze(maze_file);
 }
 
-BFSSolver::~BFSSolver() {
+DFSSolver::~DFSSolver() {
 	delete maze;
 }
 
-void BFSSolver::setMaze(const std::string maze_file) {
+void DFSSolver::setMaze(const std::string maze_file) {
 	delete maze;
-	maze = new BFSMaze(maze_file);
+	maze = new DFSMaze(maze_file);
 }
 
-void BFSSolver::output_solution(std::ofstream &ofile) {
+void DFSSolver::output_solution(std::ofstream &ofile) {
 	maze->writeSolution();
 	maze->outputMaze(ofile);
 }
 
-void BFSSolver::solve_serial() {
+void DFSSolver::solve_serial() {
 	omp_lock_t writelock;
 	omp_init_lock(&writelock);
 
-	std::vector<Node*> * nodes = &(maze->adj_list);
-	std::queue<int> q;
-	//setting starting node to the [r c] input
-	int starting_node = 0;
-	nodes->at(starting_node)->setLevel(0);
-	q.push(starting_node);
+	std::vector<Node*> *nodes = &(maze->adj_list);
+
+	std::stack<int> s;
+	nodes->at(0)->setLevel(0);
+	nodes->at(0)->setVisited();
+	s.push(0);
 	int v;
 
-	while (!q.empty()){
-		v = q.front();
-		q.pop();
+	while (!s.empty()){
+		v = s.top();
+		s.pop();
 
 		//work with all its neighbors now
 		std::vector<int> neighbors = nodes->at(v)->getAdj();
 		#pragma omp parallel for num_threads(1)
 		for (size_t i=0; i <neighbors.size();i++){
-			if (nodes->at(neighbors[i])->getLevel() == -1){
+			if (!nodes->at(neighbors[i])->getVisited()){
 				omp_set_lock(&writelock);
 
 				//Ensuring that the level will stay under 10, although not needed here
 				nodes->at(neighbors[i])->setLevel((nodes->at(v)->getLevel()+1)%10);
 				nodes->at(neighbors[i])->setPred(nodes->at(v));
-				q.push(neighbors[i]);
+				nodes->at(neighbors[i])->setVisited();
 
+				s.push(neighbors[i]);
 				omp_unset_lock(&writelock);
 
 				//going backwards
@@ -64,25 +65,24 @@ void BFSSolver::solve_serial() {
 			}
 		}
 	}
-
 	omp_unset_lock(&writelock);
 }
 
-void BFSSolver::solve_parallel() {
+void DFSSolver::solve_parallel() {
 	omp_lock_t writelock;
 	omp_init_lock(&writelock);
 
-	std::vector<Node*> * nodes = &(maze->adj_list);
-	std::queue<int> q;
-	//setting starting node to the [r c] input
-	int starting_node = 0;
-	nodes->at(starting_node)->setLevel(0);
-	q.push(starting_node);
+	std::vector<Node*> *nodes = &(maze->adj_list);
+
+	std::stack<int> s;
+	nodes->at(0)->setLevel(0);
+	nodes->at(0)->setVisited();
+	s.push(0);
 	int v;
 
-	while (!q.empty()){
-		v = q.front();
-		q.pop();
+	while (!s.empty()){
+		v = s.top();
+		s.pop();
 
 		//work with all its neighbors now
 		std::vector<int> neighbors = nodes->at(v)->getAdj();
@@ -91,17 +91,17 @@ void BFSSolver::solve_parallel() {
 			thread_count = 1;
 
 		}
-		//Parallelism.
 		#pragma omp parallel for num_threads(thread_count)
 		for (size_t i=0; i <neighbors.size();i++){
-			if (nodes->at(neighbors[i])->getLevel() == -1){
+			if (!nodes->at(neighbors[i])->getVisited()){
 				omp_set_lock(&writelock);
 
 				//Ensuring that the level will stay under 10, although not needed here
 				nodes->at(neighbors[i])->setLevel((nodes->at(v)->getLevel()+1)%10);
 				nodes->at(neighbors[i])->setPred(nodes->at(v));
-				q.push(neighbors[i]);
+				nodes->at(neighbors[i])->setVisited();
 
+				s.push(neighbors[i]);
 				omp_unset_lock(&writelock);
 
 				//going backwards
@@ -116,12 +116,11 @@ void BFSSolver::solve_parallel() {
 			}
 		}
 	}
-
 	omp_unset_lock(&writelock);
 }
 
 
-BFSSolver::BFSMaze::BFSMaze(const std::string maze_file) {
+DFSSolver::DFSMaze::DFSMaze(const std::string maze_file) {
 	std::ifstream iFile;
 	iFile.open(maze_file);
 
@@ -134,13 +133,13 @@ BFSSolver::BFSMaze::BFSMaze(const std::string maze_file) {
 	iFile.close();
 }
 
-BFSSolver::BFSMaze::~BFSMaze() {
+DFSSolver::DFSMaze::~DFSMaze() {
 	for (unsigned int i=0; i < adj_list.size();i++){
 		delete adj_list.at(i);
 	}
 }
 
-void BFSSolver::BFSMaze::writeSolution() {
+void DFSSolver::DFSMaze::writeSolution() {
 	for (unsigned int i=0; i < adj_list.size();i++){
 		//finding the converted spots on the graph
 		int r_ = 2*(i/rows) + 1;
@@ -151,7 +150,7 @@ void BFSSolver::BFSMaze::writeSolution() {
 	}
 }
 
-void BFSSolver::BFSMaze::outputMaze(std::ofstream &ofile) {
+void DFSSolver::DFSMaze::outputMaze(std::ofstream &ofile) {
 	for(unsigned int i=0; i < maze_vector.size(); i++){
 		for(unsigned int j =0; j< maze_vector[i].size(); j++){
 			ofile << maze_vector[i][j];
@@ -160,7 +159,7 @@ void BFSSolver::BFSMaze::outputMaze(std::ofstream &ofile) {
 	}
 }
 
-void BFSSolver::BFSMaze::parseMazeFile(std::ifstream &iFile) {
+void DFSSolver::DFSMaze::parseMazeFile(std::ifstream &iFile) {
 	int line_counter = 0;
 	std::string line = "";
 
@@ -190,7 +189,7 @@ void BFSSolver::BFSMaze::parseMazeFile(std::ifstream &iFile) {
 	rows = (line_counter-1)/2;
 }
 
-std::vector<char> BFSSolver::BFSMaze::lineToVector(std::string line) {
+std::vector<char> DFSSolver::DFSMaze::lineToVector(std::string line) {
 	std::vector<char> temp;
 	for (unsigned int i=0; i <line.length(); i++){
 		char maze = line[i];
@@ -216,7 +215,7 @@ std::vector<char> BFSSolver::BFSMaze::lineToVector(std::string line) {
 	return temp;
 }
 
-void BFSSolver::BFSMaze::createAdjList() {
+void DFSSolver::DFSMaze::createAdjList() {
 	for (int i=0; i < (cols*rows); i++){
 		Node* n = new Node();
 		adj_list.push_back(n);

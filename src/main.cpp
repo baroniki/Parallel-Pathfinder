@@ -4,6 +4,8 @@
 #include <time.h>
 #include "../include/maze_solver.h"
 #include "../include/bfs_solver.h"
+#include "../include/dfs_solver.h"
+#include "../include/dijkstra_solver.h"
 
 int main(int argc, char** argv) {
 	if(argc < 2) {
@@ -20,13 +22,13 @@ int main(int argc, char** argv) {
 
 	if(!solver_type.compare("bfs"))
 		solver = new BFSSolver(maze_file);
-	/*
 	else if(!solver_type.compare("dfs"))
-		//solver = new DFSSolver();
+		solver = new DFSSolver(maze_file);
 	else if(!solver_type.compare("dijkstra"))
-		//solver = new DijkstraSolver();
+		solver = new DijkstraSolver(maze_file);
+	/*
 	else if(!solver_type.compare("astar"))
-		//solver = new AStarSolver();
+		solver = new AStarSolver();
 	*/
 	else {
 		std::cout << "invalid solver type" << std::endl;
