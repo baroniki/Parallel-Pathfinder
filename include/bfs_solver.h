@@ -76,6 +76,7 @@ private:
 		// Data members
 		std::vector<Node*> adj_list;
 		int rows, cols;
+
 	private:
 		void parseMazeFile(std::ifstream &iFile);
 		std::vector<char> lineToVector(std::string line);

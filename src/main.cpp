@@ -35,12 +35,11 @@ int main(int argc, char** argv) {
 
 	// setup output file to show results
 
-	std::string ofile_name = "output/results_" + solver_type + "_" + maze_file;
+	std::string ofile_name = "data/outputs/results_" + solver_type + ".txt";
 	std::ofstream ofile;
 	ofile.open(ofile_name);
 
 	ofile << "Results for " << solver_type << " on maze: " << maze_file << ":\n";
-
 
 	struct timespec start, stop;
 	double serial_time, parallel_time;
@@ -54,6 +53,7 @@ int main(int argc, char** argv) {
 
 	ofile << "serial time: " << serial_time << "\n";
 
+
 	if(clock_gettime(CLOCK_REALTIME, &start) == -1) { perror( "clock gettime" );}
 
 	solver->solve_parallel();
@@ -62,6 +62,7 @@ int main(int argc, char** argv) {
 	parallel_time = (stop.tv_sec - start.tv_sec)+ (double)(stop.tv_nsec - start.tv_nsec)/1e9;
 
 	ofile << "parallel time: " << parallel_time << "\n";
+
 
 	solver->output_solution(ofile);
 
