@@ -12,4 +12,4 @@ bfs_solver: src/bfs_solver.cpp
 	g++ $(FLAGS) -c src/bfs_solver.cpp -o bin/bfs_solver.o
 
 clean:
-	rm -f bin/*.o run
+	rm -f bin/*.o data/outputs/*.txt
