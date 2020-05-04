@@ -6,6 +6,7 @@
 #include "../include/bfs_solver.h"
 #include "../include/dfs_solver.h"
 #include "../include/dijkstra_solver.h"
+#include "../include/astar_solver.h"
 
 int main(int argc, char** argv) {
 	if(argc < 2) {
@@ -26,10 +27,8 @@ int main(int argc, char** argv) {
 		solver = new DFSSolver(maze_file);
 	else if(!solver_type.compare("dijkstra"))
 		solver = new DijkstraSolver(maze_file);
-	/*
 	else if(!solver_type.compare("astar"))
-		solver = new AStarSolver();
-	*/
+		solver = new AStarSolver(maze_file);
 	else {
 		std::cout << "invalid solver type" << std::endl;
 		return 1;
@@ -63,9 +62,9 @@ int main(int argc, char** argv) {
 	if(clock_gettime(CLOCK_REALTIME, &stop) == -1) { perror( "clock gettime" );}
 	parallel_time = (stop.tv_sec - start.tv_sec)+ (double)(stop.tv_nsec - start.tv_nsec)/1e9;
 
-	ofile << "parallel time: " << parallel_time << "\n";
+	ofile << "parallel time: " << parallel_time << "\n\n";
 
-
+	ofile << "solution:\n";
 	solver->output_solution(ofile);
 
 	ofile.close();
